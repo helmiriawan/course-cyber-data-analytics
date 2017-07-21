@@ -6,6 +6,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import os
+import datetime
 
 working_directory = "C:/Users/helmi/unix/CS4035/lab_python/lab1/"
 input_file = working_directory + "data_for_student_case.csv"
@@ -44,7 +45,7 @@ dataset.simple_journal[dataset['simple_journal'] == 'Settled'] = 'Legitimate'
 
 # Change data type
 for column in ['bookingdate', 'creationdate']:
-    dataset[column] = pd.to_datetime(dataset.bookingdate, format='%Y-%m-%d', errors='coerce')
+    dataset[column] = pd.to_datetime(dataset.bookingdate, format='%Y-%m-%d %H:%M:%S', errors='coerce')
 
 for column in ['issuercountrycode', 'txvariantcode', 'currencycode', 'shoppercountrycode', 'shopperinteraction', 'simple_journal', 'cardverificationcodesupplied', 'cvcresponsecode', 'accountcode']:
     dataset[column] = dataset[column].astype('category')
@@ -89,3 +90,19 @@ plt.ylabel('Amount')
 plt.show()
 
 
+
+##################
+# Imbalance task #
+##################
+
+
+
+
+
+
+
+#################
+# Useful script #
+#################
+
+#dataset[dataset.bookingdate < datetime.datetime(2015,11,10)].head(20)
