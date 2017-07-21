@@ -5,10 +5,15 @@
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+import os
 
 working_directory = "C:/Users/helmi/unix/CS4035/lab_python/lab1/"
 input_file = working_directory + "data_for_student_case.csv"
-output_file = working_directory + "test.png"
+figure_directory = working_directory + "figure/"
+
+# Create figure directory
+if not os.path.exists(figure_directory):
+    os.makedirs(figure_directory)
 
 
 
@@ -64,6 +69,8 @@ for flag in ['Chargeback', 'Settled']:
     sns.heatmap(pivot_data, cmap='viridis', linewidths=.5)
     if flag == 'Chargeback' :
         plt.title('Heat Map of Issuer and Shopper Country Code from Fraudulent Transaction')
+        plt.savefig(figure_directory + 'heatmap_fraudulent.png')
     else :
         plt.title('Heat Map of Issuer and Shopper Country Code from Legitimate Transaction')
+        plt.savefig(figure_directory + 'heatmap_legitimate.png')
     plt.show()
