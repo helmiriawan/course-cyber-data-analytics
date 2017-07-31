@@ -136,16 +136,53 @@ feature = pd.get_dummies(feature)
 
 feature_train, feature_test, label_train, label_test = train_test_split(feature, label, test_size = 0.5, random_state=42, stratify=label)
 
-sm = SMOTE(ratio=float(0.5), random_state=42)
-feature_resampling, label_resampling = sm.fit_sample(feature_train, label_train)
-
-feature_list = [feature_train, feature_resampling]
-label_list = [label_train, label_train]
+resampling = SMOTE(ratio=float(0.5), random_state=42)
+feature_resampling, label_resampling = resampling.fit_sample(feature_train, label_train)
 
 # Set classifier
-logistic = LogisticRegression()
-knn = KNeighborsClassifier(n_neighbors=5)
-decision_tree = tree.DecisionTreeClassifier()
+#classifier = LogisticRegression()
+#classifier = KNeighborsClassifier(n_neighbors=5)
+classifier = tree.DecisionTreeClassifier()
+
+# Train classifier
+classifier.fit(feature_train, label_train)
+
+# Evaluate
+label_prediction_probability = classifier.predict_proba(feature_test)[:,1]
+fpr, tpr, thresholds = roc_curve(label_test, label_prediction_probability)
+auc = roc_auc_score(label_test, label_prediction_probability)
+
+# Train classifier with SMOTEd features
+classifier.fit(feature_resampling, label_resampling)
+
+# Evaluate the SMOTEd features
+smote_label_prediction_probability = classifier.predict_proba(feature_test)[:,1]
+smote_fpr, smote_tpr, smote_thresholds = roc_curve(label_test, smote_label_prediction_probability)
+smote_auc = roc_auc_score(label_test, smote_label_prediction_probability)
+
+# Generate the ROC curve
+#plt.title('AUC of Logistic Classifier')
+#plt.title('AUC of KNN Classifier')
+plt.title('AUC of Decision Tree Classifier')
+
+plt.plot([0, 1], [0, 1], 'k--')
+plt.plot(fpr, tpr, color='darkorange', label='AUC UNSMOTEd = %0.2f' % auc)
+plt.plot(smote_fpr, smote_tpr, color='green', label='AUC SMOTEd = %0.2f' % smote_auc)
+
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.legend(loc="lower right")
+
+#plt.savefig(figure_directory + 'roc_logistic.png')
+#plt.savefig(figure_directory + 'roc_knn.png')
+plt.savefig(figure_directory + 'roc_decision_tree.png')
+plt.show()
+
+#*Go back and change the classfier (also the ROC curve title and file name)
+
+
+
+
 
 #for classifier in [logistic, knn, decision_tree]:
 for classifier in [logistic]:
@@ -158,67 +195,6 @@ for classifier in [logistic]:
         fpr, tpr, thresholds = roc_curve(label_test, label_prediction_probability)
         
         print("AUC: {}".format(roc_auc_score(label_test, label_prediction_probability)))
-    
-    
-
-# Set classifier
-classifier = LogisticRegression()
-#classifier = KNeighborsClassifier(n_neighbors=5)
-#classifier = tree.DecisionTreeClassifier()
-
-# UNSMOTEd
-classifier.fit(feature_train, label_train)
-
-label_prediction_probability = classifier.predict_proba(feature_test)[:,1]
-fpr, tpr, thresholds = roc_curve(label_test, label_prediction_probability)
-
-auc = roc_auc_score(label_test, label_prediction_probability)
-plt.plot(fpr, tpr, color='darkorange', label='AUC UNSMOTEd = %0.2f' % auc)
-
-# SMOTEd
-sm = SMOTE(ratio=float(0.5), random_state=42)
-feature_resampling, label_resampling = sm.fit_sample(feature_train, label_train)
-
-classifier.fit(feature_resampling, label_resampling)
-
-label_prediction_probability = classifier.predict_proba(feature_test)[:,1]
-fpr, tpr, thresholds = roc_curve(label_test, label_prediction_probability)
-
-auc = roc_auc_score(label_test, label_prediction_probability)
-plt.plot(fpr, tpr, color='green', label='AUC SMOTEd = %0.2f' % auc)
-
-
-# Plot ROC curve
-plt.title('AUC of Logistic Classifier')
-
-plt.xlabel('False Positive Rate')
-plt.ylabel('True Positive Rate')
-plt.plot([0, 1], [0, 1], 'k--')
-plt.legend(loc="lower right")
-plt.show()
-#print("AUC: {}".format(roc_auc_score(label_test, label_prediction_probability)))
-
-# Apply SMOTE
-sm = SMOTE(ratio=float(0.5), random_state=42)
-feature_resampling, label_resampling = sm.fit_sample(feature_train, label_train)
-
-# Train classifier
-classifier.fit(feature_resampling, label_resampling)
-
-# Generate ROC curve values
-label_prediction_probability = classifier.predict_proba(feature_test)[:,1]
-fpr, tpr, thresholds = roc_curve(label_test, label_prediction_probability)
-
-# Plot ROC curve
-plt.plot([0, 1], [0, 1], 'k--')
-plt.plot(fpr, tpr)
-plt.xlabel('False Positive Rate')
-plt.ylabel('True Positive Rate')
-plt.title('ROC Curve')
-plt.show()
-print("AUC: {}".format(roc_auc_score(label_test, label_prediction_probability)))
-
-
 
 
 
