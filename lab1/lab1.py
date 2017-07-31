@@ -139,62 +139,51 @@ feature_train, feature_test, label_train, label_test = train_test_split(feature,
 resampling = SMOTE(ratio=float(0.5), random_state=42)
 feature_resampling, label_resampling = resampling.fit_sample(feature_train, label_train)
 
-# Set classifier
-#classifier = LogisticRegression()
-#classifier = KNeighborsClassifier(n_neighbors=5)
+# Create function to generate ROC curve values
+def roc_values(classifier, feature_train, feature_test, label_train, label_test):
+
+    # Train classifier
+    classifier.fit(feature_train, label_train)
+
+    # Generate the ROC curves values
+    label_prediction_probability = classifier.predict_proba(feature_test)[:,1]
+    fpr, tpr, thresholds = roc_curve(label_test, label_prediction_probability)
+    auc = roc_auc_score(label_test, label_prediction_probability)
+
+    return fpr, tpr, auc
+
+# Create function to generate ROC curves
+def roc_curves(title, filename, fpr, tpr, auc, fpr_smote, tpr_smote, auc_smote):
+
+    plt.title(title)
+    plt.plot([0, 1], [0, 1], 'k--')
+    plt.plot(fpr, tpr, color='darkorange', label='AUC UNSMOTEd = %0.2f' % auc)
+    plt.plot(fpr_smote, tpr_smote, color='green', label='AUC SMOTEd = %0.2f' % auc_smote)
+
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.legend(loc="lower right")
+
+    plt.savefig(figure_directory + filename)
+    plt.show()
+
+# Generate ROC curves with logistic classifier
+classifier = LogisticRegression()
+fpr, tpr, auc = roc_values(classifier, feature_train, feature_test, label_train, label_test)
+fpr_smote, tpr_smote, auc_smote = roc_values(classifier, feature_resampling, feature_test, label_resampling, label_test)
+roc_curves('AUC of Logistic Classifier', 'roc_logistic.png', fpr, tpr, auc, fpr_smote, tpr_smote, auc_smote)
+
+# Generate ROC curves with KNN classifier
+classifier = KNeighborsClassifier(n_neighbors=5)
+fpr, tpr, auc = roc_values(classifier, feature_train, feature_test, label_train, label_test)
+fpr_smote, tpr_smote, auc_smote = roc_values(classifier, feature_resampling, feature_test, label_resampling, label_test)
+roc_curves('AUC of KNN Classifier', 'roc_knn.png', fpr, tpr, auc, fpr_smote, tpr_smote, auc_smote)
+
+# Generate ROC curves with decision tree classifier
 classifier = tree.DecisionTreeClassifier()
-
-# Train classifier
-classifier.fit(feature_train, label_train)
-
-# Evaluate
-label_prediction_probability = classifier.predict_proba(feature_test)[:,1]
-fpr, tpr, thresholds = roc_curve(label_test, label_prediction_probability)
-auc = roc_auc_score(label_test, label_prediction_probability)
-
-# Train classifier with SMOTEd features
-classifier.fit(feature_resampling, label_resampling)
-
-# Evaluate the SMOTEd features
-smote_label_prediction_probability = classifier.predict_proba(feature_test)[:,1]
-smote_fpr, smote_tpr, smote_thresholds = roc_curve(label_test, smote_label_prediction_probability)
-smote_auc = roc_auc_score(label_test, smote_label_prediction_probability)
-
-# Generate the ROC curve
-#plt.title('AUC of Logistic Classifier')
-#plt.title('AUC of KNN Classifier')
-plt.title('AUC of Decision Tree Classifier')
-
-plt.plot([0, 1], [0, 1], 'k--')
-plt.plot(fpr, tpr, color='darkorange', label='AUC UNSMOTEd = %0.2f' % auc)
-plt.plot(smote_fpr, smote_tpr, color='green', label='AUC SMOTEd = %0.2f' % smote_auc)
-
-plt.xlabel('False Positive Rate')
-plt.ylabel('True Positive Rate')
-plt.legend(loc="lower right")
-
-#plt.savefig(figure_directory + 'roc_logistic.png')
-#plt.savefig(figure_directory + 'roc_knn.png')
-plt.savefig(figure_directory + 'roc_decision_tree.png')
-plt.show()
-
-#*Go back and change the classfier (also the ROC curve title and file name)
-
-
-
-
-
-#for classifier in [logistic, knn, decision_tree]:
-for classifier in [logistic]:
-    for feature, label in zip(feature_list, label_list):
-        
-        # Train clasifier
-        classifier.fit(feature, label)
-        
-        label_prediction_probability = classifier.predict_proba(feature_test)[:,1]
-        fpr, tpr, thresholds = roc_curve(label_test, label_prediction_probability)
-        
-        print("AUC: {}".format(roc_auc_score(label_test, label_prediction_probability)))
+fpr, tpr, auc = roc_values(classifier, feature_train, feature_test, label_train, label_test)
+fpr_smote, tpr_smote, auc_smote = roc_values(classifier, feature_resampling, feature_test, label_resampling, label_test)
+roc_curves('AUC of Decision Tree Classifier', 'roc_decision_tree.png', fpr, tpr, auc, fpr_smote, tpr_smote, auc_smote)
 
 
 
