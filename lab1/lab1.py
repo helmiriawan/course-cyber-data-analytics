@@ -10,7 +10,10 @@ import datetime
 import os
 
 from sklearn.model_selection import train_test_split
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import KFold
 
+from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import roc_curve
 from sklearn.metrics import roc_auc_score
@@ -187,6 +190,55 @@ roc_curves('AUC of Decision Tree Classifier', 'roc_decision_tree.png', fpr, tpr,
 
 
 
+#######################
+# Classification task #
+#######################
+
+# Data preparation
+columns = ['issuercountrycode', 'txvariantcode', 'amount', 'currencycode', 'shoppercountrycode', 'shopperinteraction', 'cardverificationcodesupplied', 'cvcresponsecode', 'accountcode', 'simple_journal']
+subset = dataset[columns]
+
+subset.loc[subset.simple_journal == 'Chargeback', 'simple_journal'] = 1
+subset.loc[subset.simple_journal == 'Settled', 'simple_journal'] = 0
+subset['simple_journal'] = subset['simple_journal'].astype('int')
+
+label = subset.simple_journal
+
+feature = subset.drop('simple_journal', axis=1)
+feature = pd.get_dummies(feature)
+
+feature_train, feature_test, label_train, label_test = train_test_split(feature, label, test_size = 0.5, random_state=42, stratify=label)
+
+resampling = SMOTE(ratio=float(0.25), random_state=42)
+feature_resampling, label_resampling = resampling.fit_sample(feature_train, label_train)
+
+# Modeling
+classifier = LogisticRegression()
+#classifier = tree.DecisionTreeClassifier()
+
+#classifier.fit(feature_train, label_train)
+classifier.fit(feature_resampling, label_resampling)
+
+# Evaluation
+label_prediction = classifier.predict(feature_test)
+table_of_confusion = confusion_matrix(label_test, label_prediction, labels=[1,0])
+
+true_positives = table_of_confusion[0][0]
+false_positives = table_of_confusion[1][0]
+true_negatives = table_of_confusion[1][1]
+false_negatives = table_of_confusion[0][1]
+
+accuracy = (true_positives + true_negatives) / (true_positives + false_positives + true_negatives + false_negatives)
+
+print("true positives: ", true_positives)
+print("false positives: ", false_positives)
+print("true negatives: ", true_negatives)
+print("false negatives: ", false_negatives)
+
+print("accuracy: ", accuracy)
+
+
+
 
 
 #################
@@ -208,3 +260,7 @@ len(label_train[label_train == 1])
 len(label_train[label_train == 0])
 len(label_resampling[label_resampling == 1])
 len(label_resampling[label_resampling == 0])
+
+# Check the distribution of the data
+label_train.value_counts()
+label_test.value_counts()
