@@ -197,6 +197,7 @@ roc_curves('AUC of Decision Tree Classifier', 'roc_decision_tree.png', fpr, tpr,
 # Data preparation
 columns = ['issuercountrycode', 'txvariantcode', 'amount', 'currencycode', 'shoppercountrycode', 'shopperinteraction', 'cardverificationcodesupplied', 'cvcresponsecode', 'accountcode', 'simple_journal']
 subset = dataset[columns]
+print("Number of columns: {}".format(len(subset.columns)))
 
 subset.loc[subset.simple_journal == 'Chargeback', 'simple_journal'] = 1
 subset.loc[subset.simple_journal == 'Settled', 'simple_journal'] = 0
@@ -228,7 +229,15 @@ false_positives = table_of_confusion[1][0]
 true_negatives = table_of_confusion[1][1]
 false_negatives = table_of_confusion[0][1]
 
-accuracy = (true_positives + true_negatives) / (true_positives + false_positives + true_negatives + false_negatives)
+accuracy = (true_positives+true_negatives) / (true_positives+false_positives+true_negatives+false_negatives)
+sensitivity = true_positives / (true_positives+false_negatives)
+specificity = true_negatives / (false_positives+true_negatives)
+precision = true_positives / (true_positives+false_positives)
+f_measure = 2 * precision * sensitivity / (precision+sensitivity)
+
+label_prediction_probability = classifier.predict_proba(feature_test)[:,1]
+fpr, tpr, thresholds = roc_curve(label_test, label_prediction_probability)
+auc = roc_auc_score(label_test, label_prediction_probability)
 
 print("true positives: ", true_positives)
 print("false positives: ", false_positives)
@@ -236,8 +245,36 @@ print("true negatives: ", true_negatives)
 print("false negatives: ", false_negatives)
 
 print("accuracy: ", accuracy)
+print("sensitivity: ", sensitivity)
+print("specificity: ", specificity)
+print("precision", precision)
+print("f_measure: ", f_measure)
+print("auc: ", auc)
 
 
+
+
+
+
+
+
+
+# Evaluation
+classifier.score(feature_test, label_test)
+
+confusion_matrix(label_test, label_prediction)
+classification_report(label_test, label_prediction)
+
+cross_validation_scores = cross_val_score(classifier, feature, label, cv=5)
+np.mean(cross_validation_scores)
+
+cross_val_score(classifier, feature, label, cv=5, scoring='accuracy')
+
+
+# Cross validation
+number_of_fold = 5
+folder = KFold(n_splits=number_of_fold, shuffle=True, random_state=42)
+help(folder.split)
 
 
 
