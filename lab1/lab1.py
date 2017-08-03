@@ -35,6 +35,8 @@ if not os.path.exists(figure_directory):
 
 
 
+
+
 ######################
 # Data understanding #
 ######################
@@ -54,6 +56,8 @@ for feature in ['txvariantcode', 'currencycode', 'shopperinteraction', 'simple_j
 
 
 
+
+
 #######################
 # Data pre-processing #
 #######################
@@ -62,12 +66,15 @@ for feature in ['txvariantcode', 'currencycode', 'shopperinteraction', 'simple_j
 dataset = dataset.dropna()
 dataset = dataset[dataset.simple_journal != "Refused"]
 
+
 # Change data type
 for column in ['bookingdate', 'creationdate']:
     dataset[column] = pd.to_datetime(dataset.bookingdate, format='%Y-%m-%d %H:%M:%S', errors='coerce')
 
 for column in ['issuercountrycode', 'txvariantcode', 'currencycode', 'shoppercountrycode', 'shopperinteraction', 'cardverificationcodesupplied', 'cvcresponsecode', 'accountcode']:
     dataset[column] = dataset[column].astype('category')
+
+
 
 
 
@@ -101,6 +108,8 @@ for flag in ['Chargeback', 'Settled']:
         plt.savefig(figure_directory + 'heatmap_settled.png')
     plt.show()
 
+
+
 # Box plot
 sns.boxplot(x="simple_journal", y="amount", data=dataset[dataset['amount'] <= 300000])   # filter amount for pretty visualization
 
@@ -118,6 +127,8 @@ plt.show()
 # Alternative boxplot
 #dataset[dataset['amount'] <= 300000].boxplot(column='amount', by='simple_journal', rot=60)
 #plt.show()
+
+
 
 
 
@@ -142,6 +153,8 @@ feature_train, feature_test, label_train, label_test = train_test_split(feature,
 resampling = SMOTE(ratio=float(0.5), random_state=42)
 feature_resampling, label_resampling = resampling.fit_sample(feature_train, label_train)
 
+
+
 # Create function to generate ROC curve values
 def roc_values(classifier, feature_train, feature_test, label_train, label_test):
 
@@ -154,6 +167,8 @@ def roc_values(classifier, feature_train, feature_test, label_train, label_test)
     auc = roc_auc_score(label_test, label_prediction_probability)
 
     return fpr, tpr, auc
+
+
 
 # Create function to generate ROC curves
 def roc_curves(title, filename, fpr, tpr, auc, fpr_smote, tpr_smote, auc_smote):
@@ -170,11 +185,15 @@ def roc_curves(title, filename, fpr, tpr, auc, fpr_smote, tpr_smote, auc_smote):
     plt.savefig(figure_directory + filename)
     plt.show()
 
+
+
 # Generate ROC curves with logistic classifier
 classifier = LogisticRegression()
 fpr, tpr, auc = roc_values(classifier, feature_train, feature_test, label_train, label_test)
 fpr_smote, tpr_smote, auc_smote = roc_values(classifier, feature_resampling, feature_test, label_resampling, label_test)
 roc_curves('AUC of Logistic Classifier', 'roc_logistic.png', fpr, tpr, auc, fpr_smote, tpr_smote, auc_smote)
+
+
 
 # Generate ROC curves with KNN classifier
 classifier = KNeighborsClassifier(n_neighbors=5)
@@ -182,11 +201,15 @@ fpr, tpr, auc = roc_values(classifier, feature_train, feature_test, label_train,
 fpr_smote, tpr_smote, auc_smote = roc_values(classifier, feature_resampling, feature_test, label_resampling, label_test)
 roc_curves('AUC of KNN Classifier', 'roc_knn.png', fpr, tpr, auc, fpr_smote, tpr_smote, auc_smote)
 
+
+
 # Generate ROC curves with decision tree classifier
 classifier = tree.DecisionTreeClassifier()
 fpr, tpr, auc = roc_values(classifier, feature_train, feature_test, label_train, label_test)
 fpr_smote, tpr_smote, auc_smote = roc_values(classifier, feature_resampling, feature_test, label_resampling, label_test)
 roc_curves('AUC of Decision Tree Classifier', 'roc_decision_tree.png', fpr, tpr, auc, fpr_smote, tpr_smote, auc_smote)
+
+
 
 
 
@@ -208,73 +231,101 @@ label = subset.simple_journal
 feature = subset.drop('simple_journal', axis=1)
 feature = pd.get_dummies(feature)
 
-feature_train, feature_test, label_train, label_test = train_test_split(feature, label, test_size = 0.5, random_state=42, stratify=label)
 
-resampling = SMOTE(ratio=float(0.25), random_state=42)
-feature_resampling, label_resampling = resampling.fit_sample(feature_train, label_train)
 
-# Modeling
+# Create function to run cross validation
+def cross_validation(classifier, feature, label, number_of_fold):
+
+    # Initiate the K-fold
+    k_fold = KFold(n_splits=number_of_fold, shuffle=True, random_state=42)
+
+    # Initiate the variables
+    all_true_positives = []
+    all_false_positives = []
+    all_true_negatives = []
+    all_false_negatives = []
+    all_auc = []
+
+    for train_index, test_index in k_fold.split(feature):
+
+        # Split train and test data
+        feature_train, feature_test = feature.iloc[train_index], feature.iloc[test_index]
+        label_train, label_test = label.iloc[train_index], label.iloc[test_index]
+
+        # Apply SMOTE
+        resampling = SMOTE(ratio=float(0.25), random_state=42)
+        feature_resampling, label_resampling = resampling.fit_sample(feature_train, label_train)
+
+        # Train classifier
+        #classifier.fit(feature_train, label_train)
+        classifier.fit(feature_resampling, label_resampling)
+
+        # Evaluate the model
+        label_prediction = classifier.predict(feature_test)
+        table_of_confusion = confusion_matrix(label_test, label_prediction, labels=[1,0])
+
+        true_positives = table_of_confusion[0][0]
+        false_positives = table_of_confusion[1][0]
+        true_negatives = table_of_confusion[1][1]
+        false_negatives = table_of_confusion[0][1]
+
+        label_prediction_probability = classifier.predict_proba(feature_test)[:,1]
+        fpr, tpr, thresholds = roc_curve(label_test, label_prediction_probability)
+        auc = roc_auc_score(label_test, label_prediction_probability)
+
+        # Put the evaluation result to the list
+        all_true_positives.append(true_positives)
+        all_false_positives.append(false_positives)
+        all_true_negatives.append(true_negatives)
+        all_false_negatives.append(false_negatives)
+        all_auc.append(auc)
+
+    # Change the list to numpy array
+    all_true_positives = np.array(all_true_positives)
+    all_false_positives = np.array(all_false_positives)
+    all_true_negatives = np.array(all_true_negatives)
+    all_false_negatives = np.array(all_false_negatives)
+    all_auc = np.array(all_auc)
+
+    return all_true_positives, all_false_positives, all_true_negatives, all_false_negatives, all_auc
+
+
+
+# Create function to show the evaluation result from cross validation
+def evaluation_result(true_positives, false_positives, true_negatives, false_negatives, auc):
+
+    accuracy = (true_positives+true_negatives) / (true_positives+false_positives+true_negatives+false_negatives)
+    sensitivity = true_positives / (true_positives+false_negatives)
+    specificity = true_negatives / (false_positives+true_negatives)
+    precision = true_positives / (true_positives+false_positives)
+    f_measure = 2 * precision * sensitivity / (precision+sensitivity)
+
+    print("True positives: {}".format(true_positives))
+    print("False positives: {}".format(false_positives))
+    print("True negatives: {}".format(true_negatives))
+    print("False negatives: {}".format(false_negatives))
+    print("AUC: {}".format(auc))
+
+    #print("True positives: {}".format(np.mean(true_positives)))
+    #print("False positives: {}".format(np.mean(false_positives)))
+    #print("True negatives: {}".format(np.mean(true_negatives)))
+    #print("False negatives: {}".format(np.mean(false_negatives)))
+
+    print("Accuracy: {}".format(np.mean(accuracy)))
+    print("Sensitivity: {}".format(np.mean(sensitivity)))
+    print("Specificity: {}".format(np.mean(specificity)))
+    print("Precision: {}".format(np.mean(precision)))
+    print("F-measure: {}".format(np.mean(f_measure)))
+    print("AUC: {}".format(np.mean(auc)))
+
+
+
+# Evaluate the black-box
 classifier = LogisticRegression()
-#classifier = tree.DecisionTreeClassifier()
-
-#classifier.fit(feature_train, label_train)
-classifier.fit(feature_resampling, label_resampling)
-
-# Evaluation
-label_prediction = classifier.predict(feature_test)
-table_of_confusion = confusion_matrix(label_test, label_prediction, labels=[1,0])
-
-true_positives = table_of_confusion[0][0]
-false_positives = table_of_confusion[1][0]
-true_negatives = table_of_confusion[1][1]
-false_negatives = table_of_confusion[0][1]
-
-accuracy = (true_positives+true_negatives) / (true_positives+false_positives+true_negatives+false_negatives)
-sensitivity = true_positives / (true_positives+false_negatives)
-specificity = true_negatives / (false_positives+true_negatives)
-precision = true_positives / (true_positives+false_positives)
-f_measure = 2 * precision * sensitivity / (precision+sensitivity)
-
-label_prediction_probability = classifier.predict_proba(feature_test)[:,1]
-fpr, tpr, thresholds = roc_curve(label_test, label_prediction_probability)
-auc = roc_auc_score(label_test, label_prediction_probability)
-
-print("true positives: ", true_positives)
-print("false positives: ", false_positives)
-print("true negatives: ", true_negatives)
-print("false negatives: ", false_negatives)
-
-print("accuracy: ", accuracy)
-print("sensitivity: ", sensitivity)
-print("specificity: ", specificity)
-print("precision", precision)
-print("f_measure: ", f_measure)
-print("auc: ", auc)
+true_positives, false_positives, true_negatives, false_negatives, auc = cross_validation(classifier, feature, label, 10)
+evaluation_result(true_positives, false_positives, true_negatives, false_negatives, auc)
 
 
-
-
-
-
-
-
-
-# Evaluation
-classifier.score(feature_test, label_test)
-
-confusion_matrix(label_test, label_prediction)
-classification_report(label_test, label_prediction)
-
-cross_validation_scores = cross_val_score(classifier, feature, label, cv=5)
-np.mean(cross_validation_scores)
-
-cross_val_score(classifier, feature, label, cv=5, scoring='accuracy')
-
-
-# Cross validation
-number_of_fold = 5
-folder = KFold(n_splits=number_of_fold, shuffle=True, random_state=42)
-help(folder.split)
 
 
 
@@ -301,3 +352,8 @@ len(label_resampling[label_resampling == 0])
 # Check the distribution of the data
 label_train.value_counts()
 label_test.value_counts()
+
+# Evaluate classifier with sklearn function
+classifier = LogisticRegression()
+accuracy = cross_val_score(classifier, feature, label, cv=5, scoring="accuracy")
+print("Accuracy: {}".format(np.mean(accuracy)))
