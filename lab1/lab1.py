@@ -20,6 +20,7 @@ from sklearn.metrics import roc_auc_score
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn import tree
 
 from imblearn.over_sampling import SMOTE
@@ -253,7 +254,7 @@ def cross_validation(classifier, feature, label, number_of_fold):
         label_train, label_test = label.iloc[train_index], label.iloc[test_index]
 
         # Apply SMOTE
-        resampling = SMOTE(ratio=float(0.25), random_state=42)
+        resampling = SMOTE(ratio=float(0.18), random_state=42)
         feature_resampling, label_resampling = resampling.fit_sample(feature_train, label_train)
 
         # Train classifier
@@ -300,16 +301,16 @@ def evaluation_result(true_positives, false_positives, true_negatives, false_neg
     precision = true_positives / (true_positives+false_positives)
     f_measure = 2 * precision * sensitivity / (precision+sensitivity)
 
-    print("True positives: {}".format(true_positives))
-    print("False positives: {}".format(false_positives))
-    print("True negatives: {}".format(true_negatives))
-    print("False negatives: {}".format(false_negatives))
-    print("AUC: {}".format(auc))
+    #print("True positives: {}".format(true_positives))
+    #print("False positives: {}".format(false_positives))
+    #print("True negatives: {}".format(true_negatives))
+    #print("False negatives: {}".format(false_negatives))
+    #print("AUC: {}".format(auc))
 
-    #print("True positives: {}".format(np.mean(true_positives)))
-    #print("False positives: {}".format(np.mean(false_positives)))
-    #print("True negatives: {}".format(np.mean(true_negatives)))
-    #print("False negatives: {}".format(np.mean(false_negatives)))
+    print("True positives: {}".format(np.mean(true_positives)))
+    print("False positives: {}".format(np.mean(false_positives)))
+    print("True negatives: {}".format(np.mean(true_negatives)))
+    print("False negatives: {}".format(np.mean(false_negatives)))
 
     print("Accuracy: {}".format(np.mean(accuracy)))
     print("Sensitivity: {}".format(np.mean(sensitivity)))
@@ -320,8 +321,14 @@ def evaluation_result(true_positives, false_positives, true_negatives, false_neg
 
 
 
-# Evaluate the black-box
+# Set the classifier
 classifier = LogisticRegression()
+#classifier = tree.DecisionTreeClassifier()
+#classifier = KNeighborsClassifier(n_neighbors=5)
+#classifier = RandomForestClassifier()
+
+
+# Evaluate the classifier with cross validation
 true_positives, false_positives, true_negatives, false_negatives, auc = cross_validation(classifier, feature, label, 10)
 evaluation_result(true_positives, false_positives, true_negatives, false_negatives, auc)
 
@@ -357,3 +364,6 @@ label_test.value_counts()
 classifier = LogisticRegression()
 accuracy = cross_val_score(classifier, feature, label, cv=5, scoring="accuracy")
 print("Accuracy: {}".format(np.mean(accuracy)))
+
+# Print time
+datetime.datetime.now()
