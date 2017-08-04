@@ -25,9 +25,12 @@ from sklearn import tree
 
 from imblearn.over_sampling import SMOTE
 
+
+
 working_directory = "C:/Users/helmi/unix/CS4035/lab_python/lab1/"
 input_file = working_directory + "data_for_student_case.csv"
 figure_directory = working_directory + "figure/"
+figure_whitebox = figure_directory + "tree.dot"
 
 # Create figure directory
 if not os.path.exists(figure_directory):
@@ -322,15 +325,26 @@ def evaluation_result(true_positives, false_positives, true_negatives, false_neg
 
 
 # Set the classifier
-classifier = LogisticRegression()
-#classifier = tree.DecisionTreeClassifier()
+classifier = LogisticRegression()                     # for black-box
+#classifier = tree.DecisionTreeClassifier()           # for white-box
 #classifier = KNeighborsClassifier(n_neighbors=5)
 #classifier = RandomForestClassifier()
+
 
 
 # Evaluate the classifier with cross validation
 true_positives, false_positives, true_negatives, false_negatives, auc = cross_validation(classifier, feature, label, 10)
 evaluation_result(true_positives, false_positives, true_negatives, false_negatives, auc)
+
+
+
+# Visualize the white-box
+classifier = tree.DecisionTreeClassifier()
+classifier.fit(feature, label)
+tree.export_graphviz(classifier, out_file=figure_whitebox, max_depth=3)   # limit the depth for pretty visualization
+
+# After that run below line on UNIX command line to export the dot file to png
+# dot -Tpng tree.dot -o tree.png
 
 
 
@@ -340,9 +354,8 @@ evaluation_result(true_positives, false_positives, true_negatives, false_negativ
 # Useful script #
 #################
 
-#dataset[dataset.bookingdate < datetime.datetime(2015,11,10)].head(20)
 
-
+"""
 # Evaluation
 label_prediction = classifier.predict(feature_test)
 evaluation_matrix = confusion_matrix(label_test, label_prediction, labels=['Chargeback', 'Settled'])
@@ -367,3 +380,7 @@ print("Accuracy: {}".format(np.mean(accuracy)))
 
 # Print time
 datetime.datetime.now()
+
+# Export features to csv
+feature.to_csv(working_directory+"features.csv", sep=',')
+"""
