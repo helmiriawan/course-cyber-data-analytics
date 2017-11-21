@@ -298,59 +298,27 @@ def evaluation_result(true_positives, false_positives, true_negatives, false_neg
     print("AUC: {}".format(np.mean(auc)))
 
 
+# Set algorithm
+algorithm = LogisticRegression()
 
-# Set the classifier
-classifier = LogisticRegression()                     # for black-box
-#classifier = tree.DecisionTreeClassifier()           # for white-box
-#classifier = KNeighborsClassifier(n_neighbors=5)
-#classifier = RandomForestClassifier()
+"""
+# Alternative black-box algorithms
+algorithm = KNeighborsClassifier(n_neighbors=5)
+algorithm = RandomForestClassifier()
 
+# White-box algorithm
+algorithm = tree.DecisionTreeClassifier()
+"""
 
 # Evaluate the classifier with cross validation
-tp, fp, tn, fn, auc = cross_validation(classifier, feature, label, 10)
+tp, fp, tn, fn, auc = cross_validation(algorithm, feature, label, 10)
 evaluation_result(tp, fp, tn, fn)
 
 
 # Visualize the white-box
-classifier = tree.DecisionTreeClassifier()
-classifier.fit(feature, label)
-tree.export_graphviz(classifier, out_file=figure_whitebox, max_depth=3)   # limit the depth for pretty visualization
+algorithm = tree.DecisionTreeClassifier()
+algorithm.fit(feature, label)
+tree.export_graphviz(algorithm, out_file=figure_whitebox, max_depth=3)   # limit the depth for pretty visualization
 
 # After that run below line on UNIX command line to export the dot file to png
 # dot -Tpng tree.dot -o tree.png
-
-
-#################
-# Useful script #
-#################
-
-
-"""
-# Evaluation
-label_prediction = classifier.predict(feature_test)
-evaluation_matrix = confusion_matrix(label_test, label_prediction, labels=['Chargeback', 'Settled'])
-for row in evaluation_matrix:
-    for column in row:
-        print(column)
-
-# Check new data
-len(label_train[label_train == 1])
-len(label_train[label_train == 0])
-len(label_resampling[label_resampling == 1])
-len(label_resampling[label_resampling == 0])
-
-# Check the distribution of the data
-label_train.value_counts()
-label_test.value_counts()
-
-# Evaluate classifier with sklearn function
-classifier = LogisticRegression()
-accuracy = cross_val_score(classifier, feature, label, cv=5, scoring="accuracy")
-print("Accuracy: {}".format(np.mean(accuracy)))
-
-# Print time
-datetime.datetime.now()
-
-# Export features to csv
-feature.to_csv(working_directory+"features.csv", sep=',')
-"""
