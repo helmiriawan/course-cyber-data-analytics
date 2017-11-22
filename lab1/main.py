@@ -109,27 +109,16 @@ resampling = SMOTE(ratio=float(0.5), random_state=42)
 feature_resampling, label_resampling = resampling.fit_sample(feature_train, label_train)
 
 
-# Generate ROC curves with logistic classifier
-algorithm = LogisticRegression()
-fpr, tpr, auc = imbalance.roc_values(algorithm, feature_train, feature_test, label_train, label_test)
-fpr_smote, tpr_smote, auc_smote = imbalance.roc_values(algorithm, feature_resampling, feature_test, label_resampling, label_test)
-imbalance.roc_curves('AUC of Logistic Classifier', figure_directory + 'roc_logistic.png', fpr, tpr, auc, fpr_smote, tpr_smote,
-           auc_smote)
+# Generate ROC curves with different classifiers
+imbalance.compare_roc(LogisticRegression(), 'AUC of Logistic Classifier', figure_directory + 'roc_logistic.png',
+                      feature_train, feature_test, feature_resampling, label_train, label_test, label_resampling)
 
+imbalance.compare_roc(tree.DecisionTreeClassifier(), 'AUC of Decision Tree Classifier',
+                      figure_directory + 'roc_decision_tree.png', feature_train, feature_test, feature_resampling,
+                      label_train, label_test, label_resampling)
 
-# Generate ROC curves with KNN classifier
-algorithm = KNeighborsClassifier(n_neighbors=5)
-fpr, tpr, auc = imbalance.roc_values(algorithm, feature_train, feature_test, label_train, label_test)
-fpr_smote, tpr_smote, auc_smote = imbalance.roc_values(algorithm, feature_resampling, feature_test, label_resampling, label_test)
-imbalance.roc_curves('AUC of KNN Classifier', figure_directory + 'roc_knn.png', fpr, tpr, auc, fpr_smote, tpr_smote, auc_smote)
-
-
-# Generate ROC curves with decision tree classifier
-algorithm = tree.DecisionTreeClassifier()
-fpr, tpr, auc = imbalance.roc_values(algorithm, feature_train, feature_test, label_train, label_test)
-fpr_smote, tpr_smote, auc_smote = imbalance.roc_values(algorithm, feature_resampling, feature_test, label_resampling, label_test)
-imbalance.roc_curves('AUC of Decision Tree Classifier', figure_directory + 'roc_decision_tree.png', fpr, tpr, auc, fpr_smote,
-           tpr_smote, auc_smote)
+imbalance.compare_roc(KNeighborsClassifier(n_neighbors=5), 'AUC of KNN Classifier', figure_directory + 'roc_knn.png',
+                      feature_train, feature_test, feature_resampling, label_train, label_test, label_resampling)
 
 
 #######################
