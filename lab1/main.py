@@ -25,9 +25,9 @@ from imblearn.over_sampling import SMOTE
 working_directory = os.getcwd() + "/"
 input_file = working_directory + "data_for_student_case.csv"
 figure_directory = working_directory + "figure/"
-figure_whitebox = figure_directory + "tree.dot"
+figure_white_box = figure_directory + "tree.dot"
 
-dataset = pd.read_csv(input_file)
+data_set = pd.read_csv(input_file)
 
 # Create figure directory
 if not os.path.exists(figure_directory):
@@ -39,13 +39,13 @@ if not os.path.exists(figure_directory):
 # Data understanding #
 ######################
 
-print("Number of columns: {}".format(len(dataset.columns)))
-dataset.info()
-dataset.head()
-dataset.describe()
+print("Number of columns: {}".format(len(data_set.columns)))
+data_set.info()
+data_set.head()
+data_set.describe()
 
 for feature in ['txvariantcode', 'currencycode', 'shopperinteraction', 'simple_journal']:
-    print(dataset[feature].value_counts())
+    print(data_set[feature].value_counts())
     print('---------------------------------------------')
     print('')
 
@@ -55,17 +55,17 @@ for feature in ['txvariantcode', 'currencycode', 'shopperinteraction', 'simple_j
 #######################
 
 # Clean the data
-dataset = dataset.dropna()
-dataset = dataset[dataset.simple_journal != "Refused"]
+data_set = data_set.dropna()
+data_set = data_set[data_set.simple_journal != "Refused"]
 
 
 # Change data type
 for column in ['bookingdate', 'creationdate']:
-    dataset[column] = pd.to_datetime(dataset.bookingdate, format='%Y-%m-%d %H:%M:%S', errors='coerce')
+    data_set[column] = pd.to_datetime(data_set.bookingdate, format='%Y-%m-%d %H:%M:%S', errors='coerce')
 
 for column in ['issuercountrycode', 'txvariantcode', 'currencycode', 'shoppercountrycode', 'shopperinteraction',
                'cardverificationcodesupplied', 'cvcresponsecode', 'accountcode']:
-    dataset[column] = dataset[column].astype('category')
+    data_set[column] = data_set[column].astype('category')
 
 
 ######################
@@ -73,14 +73,14 @@ for column in ['issuercountrycode', 'txvariantcode', 'currencycode', 'shoppercou
 ######################
 
 # Heat map
-visualization.heatmap(dataset, 'Chargeback', 'Issuer-Shopper Country Code of Chargeback Transactions',
+visualization.heatmap(data_set, 'Chargeback', 'Issuer-Shopper Country Code of Chargeback Transactions',
                       figure_directory + 'heatmap_chargeback.png')
-visualization.heatmap(dataset, 'Settled', 'Issuer-Shopper Country Code of Settled Transactions',
+visualization.heatmap(data_set, 'Settled', 'Issuer-Shopper Country Code of Settled Transactions',
                       figure_directory + 'heatmap_settled.png')
 
 
 # Box plot
-visualization.boxplot(dataset, 'Amount Distribution of Chargeback and Settled Transactions',
+visualization.boxplot(data_set, 'Amount Distribution of Chargeback and Settled Transactions',
                       figure_directory + 'boxplot_amount.png')
 
 
@@ -89,9 +89,9 @@ visualization.boxplot(dataset, 'Amount Distribution of Chargeback and Settled Tr
 ##################
 
 # Data preparation
-subset = dataset[['issuercountrycode', 'txvariantcode', 'amount', 'currencycode', 'shoppercountrycode',
+subset = data_set[['issuercountrycode', 'txvariantcode', 'amount', 'currencycode', 'shoppercountrycode',
                   'shopperinteraction', 'cardverificationcodesupplied', 'cvcresponsecode', 'accountcode',
-                  'simple_journal']]
+                   'simple_journal']]
 
 subset.loc[subset.simple_journal == 'Chargeback', 'simple_journal'] = 1
 subset.loc[subset.simple_journal == 'Settled', 'simple_journal'] = 0
@@ -105,20 +105,20 @@ feature = pd.get_dummies(feature)
 feature_train, feature_test, label_train, label_test = train_test_split(feature, label, test_size=0.5,
                                                                         random_state=42, stratify=label)
 
-resampling = SMOTE(ratio=float(0.5), random_state=42)
-feature_resampling, label_resampling = resampling.fit_sample(feature_train, label_train)
+oversampling = SMOTE(ratio=float(0.5), random_state=42)
+feature_oversampling, label_oversampling = oversampling.fit_sample(feature_train, label_train)
 
 
 # Generate ROC curves with different classifiers
 imbalance.compare_roc(LogisticRegression(), 'AUC of Logistic Classifier', figure_directory + 'roc_logistic.png',
-                      feature_train, feature_test, feature_resampling, label_train, label_test, label_resampling)
+                      feature_train, feature_test, feature_oversampling, label_train, label_test, label_oversampling)
 
 imbalance.compare_roc(tree.DecisionTreeClassifier(), 'AUC of Decision Tree Classifier',
-                      figure_directory + 'roc_decision_tree.png', feature_train, feature_test, feature_resampling,
-                      label_train, label_test, label_resampling)
+                      figure_directory + 'roc_decision_tree.png', feature_train, feature_test, feature_oversampling,
+                      label_train, label_test, label_oversampling)
 
 imbalance.compare_roc(KNeighborsClassifier(n_neighbors=5), 'AUC of KNN Classifier', figure_directory + 'roc_knn.png',
-                      feature_train, feature_test, feature_resampling, label_train, label_test, label_resampling)
+                      feature_train, feature_test, feature_oversampling, label_train, label_test, label_oversampling)
 
 
 #######################
@@ -128,7 +128,7 @@ imbalance.compare_roc(KNeighborsClassifier(n_neighbors=5), 'AUC of KNN Classifie
 # Data preparation
 columns = ['issuercountrycode', 'txvariantcode', 'amount', 'currencycode', 'shoppercountrycode', 'shopperinteraction',
            'cardverificationcodesupplied', 'cvcresponsecode', 'accountcode', 'simple_journal']
-subset = dataset[columns]
+subset = data_set[columns]
 print("Number of columns: {}".format(len(subset.columns)))
 
 subset.loc[subset.simple_journal == 'Chargeback', 'simple_journal'] = 1
@@ -239,7 +239,7 @@ evaluation_result(tp, fp, tn, fn)
 # Visualize the white-box
 algorithm = tree.DecisionTreeClassifier()
 algorithm.fit(feature, label)
-tree.export_graphviz(algorithm, out_file=figure_whitebox, max_depth=3)   # limit the depth for pretty visualization
+tree.export_graphviz(algorithm, out_file=figure_white_box, max_depth=3)   # limit the depth for pretty visualization
 
 # After that run below line on UNIX command line to export the dot file to png
 # dot -Tpng tree.dot -o tree.png
