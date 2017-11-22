@@ -20,8 +20,9 @@ since most of the combinations are GB-GB, as can be seen in two figures below.
 
 ![Non-fraudulent-transactions](https://raw.githubusercontent.com/helmiriawan/CS4035/master/lab1/figure/heatmap_settled.png)
 
-The amount distribution between fraudulent and non-fraudulent transactions is
-also different, as can be seen in figure below.
+Furthermore, we also find that the amount distribution between fraudulent and non-fraudulent transactions is also different. In general, the amount of
+non-fraudulent transactions is lower than fraudulent transactions, as can be
+seen in figure below.
 
 ![Non-fraudulent-transactions](https://raw.githubusercontent.com/helmiriawan/CS4035/master/lab1/figure/boxplot_amount.png)
 
@@ -38,7 +39,7 @@ and
 
 There are several solutions that can be used to tackle imbalanced data. In this
 lab, we use oversampling technique named [Synthetic Minority Over-sampling
-Technique (SMOTE)](https://en.wikipedia.org/wiki/Oversampling_and_undersampling_in_data_analysis) 
+Technique (SMOTE)](https://en.wikipedia.org/wiki/Oversampling_and_undersampling_in_data_analysis)
 in order to adjust the class distribution of the data set. We
 try this technique and test it by using three different algorithms to classify
 fraudulent transactions. The result shows that not all classifiers can have the
