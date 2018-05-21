@@ -1,4 +1,4 @@
-# CS4035 - Cyber Data Analytics
+# Lab Assignment - Cyber Data Analytics
 
 This is the repository for lab assignments of Cyber Data Analytics course.
 There are 3 lab assignments:
