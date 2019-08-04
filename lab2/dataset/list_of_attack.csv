@@ -1,0 +1,11 @@
+ID,type,start_time,end_time,attack_point,description,intention
+1,single stage single point attacks,28/12/2015 10:29:14 AM,28/12/2015 10:44:53 AM,MV-101,open MV101,overflow tank
+2,single stage single point attacks,28/12/2015 10:51:08 AM,28/12/2015 10:58:30 AM,P-102,turn on P102 in addition to P101 to flood the pipe,burst the pipe that sends water between process P1 and process P2
+3,single stage single point attacks,28/12/2015 11:22:00 AM,28/12/2015 11:28:22 AM,LIT-101,increase water level by 1 mm every second,underflow the tank and damage P101
+4,single stage single point attacks,01/01/2016 05:12 PM,01/01/2016 05:14 PM,P-101,turn P101 off,stop outflow of tank
+5,single stage single point attacks,01/01/2016 02:21 PM,01/01/2016 02:28 PM,LIT-101,set LIT101 to above H threshold,tank underflow and damage P101
+6,single stage single point attacks,01/01/2016 10:16 PM,01/01/2016 10:25 PM,LIT-101,set LIT101 to less than LL,overflow tank
+7,single stage multi point attacks,29/12/2015 06:30:00 PM,29/12/2015 06:42:00 PM,"MV-101, LIT-101",keep MV101 on continuously;Value of LIT101 set as 700 mm,tank overflow
+8,single stage multi point attacks,01/01/2016 05:18 PM,01/01/2016 05:26 PM,"P-101, P-102",turn P101 off,stop outflow of tank
+9,multi stage single point attacks,30/12/2015 05:04:56 PM,30/12/2015 05:29:00 PM,"P-101, LIT-301",P101 is turned on continuously; set value of LIT301 as 801 mm,underflow tank in P1; overflow tank in P3
+10,multi stage multi point attacks,31/12/2015 03:47:40 PM,31/12/2015 04:07:10 PM,"LIT-101, P-101, MV-201",turn P101 on continuously; turn MV201 on continuously; set value of LIT101 as 700 mm,underflow tank in P1; overflow tank in P3
