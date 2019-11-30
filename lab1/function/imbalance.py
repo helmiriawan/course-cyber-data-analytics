@@ -19,7 +19,9 @@ def roc_values(method, feature_train, feature_test, label_train, label_test):
 
 
 # Function to generate ROC curves
-def roc_curves(title, filename, fpr, tpr, auc, fpr_smote, tpr_smote, auc_smote):
+def roc_curves(
+        title, filename, fpr, tpr, auc,
+        fpr_smote, tpr_smote, auc_smote):
 
     plt.title(title)
     plt.plot([0, 1], [0, 1], 'k--')
@@ -37,9 +39,33 @@ def roc_curves(title, filename, fpr, tpr, auc, fpr_smote, tpr_smote, auc_smote):
 
 
 # Function to compare ROC curves
-def compare_roc(algorithm, title, filename, feature_train, feature_test, feature_resampling, label_train, label_test,
-                label_resampling):
-    fpr, tpr, auc = roc_values(algorithm, feature_train, feature_test, label_train, label_test)
-    fpr_smote, tpr_smote, auc_smote = roc_values(algorithm, feature_resampling, feature_test, label_resampling,
-                                                 label_test)
-    roc_curves(title, filename, fpr, tpr, auc, fpr_smote, tpr_smote, auc_smote)
+def compare_roc(
+        algorithm, title, filename, feature_train, feature_test,
+        feature_resampled, label_train, label_test, label_resampled):
+
+    fpr, tpr, auc = roc_values(
+        algorithm,
+        feature_train,
+        feature_test,
+        label_train,
+        label_test
+    )
+
+    fpr_smote, tpr_smote, auc_smote = roc_values(
+        algorithm,
+        feature_resampled,
+        feature_test,
+        label_resampled,
+        label_test
+    )
+
+    roc_curves(
+        title,
+        filename,
+        fpr,
+        tpr,
+        auc,
+        fpr_smote,
+        tpr_smote,
+        auc_smote
+    )
